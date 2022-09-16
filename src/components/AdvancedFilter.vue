@@ -128,7 +128,7 @@
 </template>
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { countries } from '../assets/list'
+import { countries } from '@/assets/list'
 
 declare interface Player {
   id: string,
