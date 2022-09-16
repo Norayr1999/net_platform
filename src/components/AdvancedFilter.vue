@@ -128,95 +128,100 @@
 </template>
 <script lang="ts">
 import { defineComponent } from 'vue';
-import {countries} from '../assets/list'
+import { countries } from '../assets/list'
 
+declare interface Player {
+  id: string,
+  text: string
+}
 export default defineComponent({
     data() {
-            return {
-                from: '' as string,
-                to: '' as string,
-                countries: countries,
-                locationSearch: '' as string,
-                selectedStage: [] as boolean[],
-                selectedSize: [] as boolean[],
-                selectedCountry: [] as object[],
-                size_list: [
-                    {id:'1_10', text: '1 - 10'},
-                    {id:'11_50', text: '11 - 50'},
-                    {id:'51_100', text: '51 - 100'},
-                    {id:'101_200', text: '101 - 200'},
-                    {id:'201_500', text: '201 - 500'},
-                    {id:'501_1000', text: '501 - 1000'},
-                    {id:'1001_5000', text: '1001 - 5000'},
-                    {id:'5001_10000', text: '5001 - 10000'},
-                    {id:'10001+', text: '10001+'}
-                ],
-                stage_list: [
-                    {id:'stage', text: 'Ideation'},
-                    {id:'stage', text: 'Early'},
-                    {id:'stage', text: 'Growth'},
-                    {id:'stage', text: 'Scaling'}
-                ]
-            }
+        return {
+            from: '' as string,
+            to: '' as string,
+            countries_list: countries as [],
+            locationSearch: '' as string,
+            selectedStage: [] as boolean[],
+            selectedSize: [] as boolean[],
+            selectedCountry: [] as Player[],
+            size_list: [
+                {id:'1_10', text: '1 - 10'},
+                {id:'11_50', text: '11 - 50'},
+                {id:'51_100', text: '51 - 100'},
+                {id:'101_200', text: '101 - 200'},
+                {id:'201_500', text: '201 - 500'},
+                {id:'501_1000', text: '501 - 1000'},
+                {id:'1001_5000', text: '1001 - 5000'},
+                {id:'5001_10000', text: '5001 - 10000'},
+                {id:'10001+', text: '10001+'}
+            ],
+            stage_list: [
+                {id:'stage', text: 'Ideation'},
+                {id:'stage', text: 'Early'},
+                {id:'stage', text: 'Growth'},
+                {id:'stage', text: 'Scaling'}
+            ]
+        }
+    },
+    computed: {
+        filterCountries(): object {
+            return this.countries_list.filter((el: string) => (el.toLowerCase()).includes(this.locationSearch.toLowerCase()))
         },
-        computed: {
-            filterCountries() {
-                return this.countries.filter((el: string) => (el.toLowerCase()).includes(this.locationSearch.toLowerCase()))
-            },
-            filterFounded (): string {
-                const item = (this.from && !this.to ? 'From '+ this.from : !this.from && this.to ? 'To ' : this.from+ ' - ') + this.to;
+        filterFounded (): string {
+            const item = (this.from && !this.to ? 'From '+ this.from : !this.from && this.to ? 'To ' : this.from+ ' - ') + this.to;
 
-                if (item === ' - ') {
-                    return ''
-                }
-
-                return item
-            },
-            finishList (): object {
-                const stages = this.filterStageAndSize(this.selectedStage, this.stage_list)                
-                const size = this.filterStageAndSize(this.selectedSize, this.size_list)
-
-                let data = [...Object.values(size), ...Object.values(stages)]
-
-                if (this.filterFounded) {
-                    data.unshift({id: 'date', text: this.filterFounded })
-                }
-                data = [...this.selectedCountry, ...data]
-
-                return data
+            if (item === ' - ') {
+                return ''
             }
+
+            return item
         },
-        methods: {
-            addCountry (country: string) {
-                if(!this.selectedCountry.find((el: object) => el.text === country)){
+        finishList (): object {
+            const stages = this.filterStageAndSize(this.selectedStage, this.stage_list)                
+            const size = this.filterStageAndSize(this.selectedSize, this.size_list)
+
+            let data = [...Object.values(size), ...Object.values(stages)]
+
+            if (this.filterFounded) {
+                data.unshift({id: 'date', text: this.filterFounded })
+            }
+            data = [...this.selectedCountry, ...data]
+
+            return data
+        }
+    },
+    methods: {
+        addCountry (country: string) {
+            let obj = this.selectedCountry.filter((el, index) => el.text === country)
+            if(!obj.length){
                 this.selectedCountry.push({id:'country', text: country})
                 this.locationSearch = '' 
-                }
-            },
-            handleMinimize(event: { currentTarget: { parentElement: { previousSibling: { classList: { toggle: (arg0: string) => void; }; }; }; }; }) {
-                event.currentTarget.parentElement.previousSibling.classList.toggle('textLine');
-            },
-            removeFilteredItem (item: { id: string; text: string }, index: number) {
-                console.log(item)
-                if(item.id === 'date') {
-                    this.from = '';
-                    this.to = '';
-                }else if (item.id === 'stage') {
-                    const idx = this.stage_list.map((el: object) => el.text).indexOf(item.text)
-                    this.selectedStage[idx] = false
-                }else if (item.id === 'country') {
-                    this.selectedCountry.splice(index, 1)
-                }else {
-                    const idx = this.size_list.map((el: object) => el.text).indexOf(item.text)
-                    this.selectedSize[idx] = false
-                }
-            },
-            filterStageAndSize (selectedItems: boolean[], items: string[] | object[]): object {
-                return selectedItems.map((item, index) => {
-                    return item ? items[index] : null
-                }).filter(item => item)
             }
+        },
+        handleMinimize(event: { currentTarget: { parentElement: { previousSibling: { classList: { toggle: (arg0: string) => void; }; }; }; }; }) {
+            event.currentTarget.parentElement.previousSibling.classList.toggle('textLine');
+        },
+        removeFilteredItem (item: { id: string; text: string }, index: number) {
+            console.log(item)
+            if(item.id === 'date') {
+                this.from = '';
+                this.to = '';
+            }else if (item.id === 'stage') {
+                const idx = this.stage_list.map((el, index) => el.text).indexOf(item.text)
+                this.selectedStage[idx] = false
+            }else if (item.id === 'country') {
+                this.selectedCountry.splice(index, 1)
+            }else {
+                const idx = this.size_list.map((el, index) => el.text).indexOf(item.text)
+                this.selectedSize[idx] = false
+            }
+        },
+        filterStageAndSize (selectedItems: boolean[], items: string[] | object[]): object {
+            return selectedItems.map((item, index) => {
+                return item ? items[index] : null
+            }).filter(item => item)
         }
+    }
     });
 </script>
 <style scoped lang="scss">
